@@ -1,5 +1,6 @@
 
-#include "virtualLego.h"
+#include "d3dUtility.h"
+#include "CWall.h"
 #include <DirectXMath.h>
 #include <ctime>
 
@@ -11,10 +12,12 @@ ID3D11Device* device = nullptr;
 // window size
 const int Width = 800;
 const int Height = 600;
+
 XMMATRIX g_mWorld;
 XMMATRIX g_mView;
 XMMATRIX g_mProj;
 
+CWall wall;
 
 // -----------------------------------------------------------------------------
 // Transform matrices
@@ -26,9 +29,8 @@ bool Display(float timeDelta)
 
 		d3d::BeginScene();
 		//render shit
-
-
-
+		wall.draw(g_mWorld, g_mView, g_mProj);
+		//wall.draw()
 		d3d::EndScene();
 		return true;	
 	}
@@ -37,7 +39,19 @@ bool Display(float timeDelta)
 
 }
 bool Setup(){
+	wall.create(200, 200, 200);
 	//setup model and some shit
+
+	//setup position and aim the camera
+	XMFLOAT3 pos(0.f, 5.f, -8.f);
+	XMFLOAT3 target(0.f, 0.f, 0.f);
+	XMFLOAT3 up(0.f, 2.f, 0.f);
+
+	g_mView = XMMatrixLookAtLH(XMLoadFloat3(&pos), XMLoadFloat3(&target), XMLoadFloat3(&up));
+	g_mWorld = d3d::getWorldMatrix();
+	g_mProj = d3d::getProjectionMatrix();
+
+
 	return true;
 }
 

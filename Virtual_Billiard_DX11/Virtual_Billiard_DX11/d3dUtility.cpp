@@ -1,5 +1,16 @@
 #include "d3dUtility.h"
 
+using namespace DirectX;
+
+ID3D11DeviceContext* d3d::deviceContext = nullptr;
+ID3D11RenderTargetView* d3d::renderTargetView = nullptr;
+IDXGISwapChain* d3d::swapChain = nullptr;
+ID3D11Texture2D* d3d::depthStencilBuffer = nullptr;
+ID3D11DepthStencilState* d3d::depthStencilState = nullptr;
+ID3D11DepthStencilView* d3d::depthStencilView = nullptr;
+ID3D11RasterizerState* d3d::normalState = nullptr;
+ID3D11RasterizerState*  d3d::wireframeState= nullptr;
+
 bool d3d::InitD3D(
 	HINSTANCE hInstance,
 	int width, int height,
@@ -304,13 +315,14 @@ bool d3d::InitD3D(
 	fieldOfView = (float)DirectX::XM_PI *.25f;
 
 	screenAspect = (float)width / (float)height;
-	/*
-	m_projectionMatrix = XMMatrixPerspectiveFovLH(fieldOfView, screenAspect, screenNear, screenDepth);
 
-	m_worldMatrix = XMMatrixIdentity();
+	
+	g_proj = XMMatrixPerspectiveFovLH(fieldOfView, screenAspect, d3d::SCREEN_NEAR, d3d::SCREEN_DEPTH);
 
-	m_orthoMatrix = XMMatrixOrthographicLH(screenWidth, screenHeight, screenNear, screenDepth);
-	*/
+	g_world = XMMatrixIdentity();
+
+	//m_orthoMatrix = XMMatrixOrthographicLH(screenWidth, screenHeight, screenNear, screenDepth);
+
 	return true;
 }
 
@@ -393,4 +405,20 @@ void d3d::EndScene()
 {
 	//end scene
 	d3d::swapChain->Present(0, 0);
+}
+
+const DirectX::XMMATRIX d3d::getProjectionMatrix()
+{
+	//return XMMatrixPerspectiveFovLH(fieldOfView, screenAspect, screenNear, screenDepth);
+	return d3d::g_proj;
+}
+
+const DirectX::XMMATRIX d3d::getWorldMatrix()
+{
+	return d3d::g_world;
+}
+
+void d3d::setWorldMatrix(const DirectX::XMMATRIX& matrix)
+{
+	d3d::g_world = matrix;
 }

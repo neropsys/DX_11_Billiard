@@ -29,6 +29,7 @@ namespace d3d
 
 	void EndScene();
 
+
 	template<class T> void Release(T t)
 	{
 		if (t)
@@ -51,16 +52,29 @@ namespace d3d
 		WPARAM wParam,
 		LPARAM lParam);
 
-	static IDXGISwapChain* swapChain;
-	static ID3D11DeviceContext* deviceContext;
-	static ID3D11RenderTargetView* renderTargetView;
-	static ID3D11Texture2D* depthStencilBuffer;
-	static ID3D11DepthStencilState* depthStencilState;
-	static ID3D11DepthStencilView* depthStencilView;
-	static ID3D11RasterizerState* normalState;
-	static ID3D11RasterizerState* wireframeState;
+	const DirectX::XMMATRIX getWorldMatrix();
+	const DirectX::XMMATRIX getProjectionMatrix();
+	
+	void setWorldMatrix(const DirectX::XMMATRIX&);
+
+	extern IDXGISwapChain* swapChain;
+	extern ID3D11DeviceContext* deviceContext;
+	extern ID3D11RenderTargetView* renderTargetView;
+	extern ID3D11Texture2D* depthStencilBuffer;
+	extern ID3D11DepthStencilState* depthStencilState;
+	extern ID3D11DepthStencilView* depthStencilView;
+	extern ID3D11RasterizerState* normalState;
+	extern ID3D11RasterizerState* wireframeState;
+
+	static DirectX::XMMATRIX g_world;
+	static DirectX::XMMATRIX g_view;
+	static DirectX::XMMATRIX g_proj;
 
 	static __int64 mCurrTime;
 	static __int64 mPrevTime;
+
+	const float SCREEN_DEPTH = 1000.0f;
+	const float SCREEN_NEAR = .1f;
+
 
 }
