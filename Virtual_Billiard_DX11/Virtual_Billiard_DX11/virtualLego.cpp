@@ -107,24 +107,24 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		float dy;
 
 		if (LOWORD(wParam) & MK_LBUTTON) {
-			/*
+			
 			if (isReset) {
 				isReset = false;
 			}
 			else {
-				D3DXVECTOR3 vDist;
-				D3DXVECTOR3 vTrans;
-				D3DXMATRIX mTrans;
-				D3DXMATRIX mX;
-				D3DXMATRIX mY;
-
+				XMFLOAT3 vDist;
+				XMFLOAT3 vTrans;
+				XMMATRIX mTrans;
+				XMMATRIX mX;
+				XMMATRIX mY;
 				switch (move) {
 				case WORLD_MOVE:
 					dx = (old_x - new_x) * 0.01f;
 					dy = (old_y - new_y) * 0.01f;
-					D3DXMatrixRotationY(&mX, dx);
-					D3DXMatrixRotationX(&mY, dy);
+					mX = XMMatrixRotationY(dx);
+					mY = XMMatrixRotationX(dy);
 					g_mWorld = g_mWorld * mX * mY;
+					d3d::setWorldMatrix(g_mWorld);
 
 					break;
 				}
@@ -132,7 +132,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			old_x = new_x;
 			old_y = new_y;
-			*/
+			
 		}
 		else {
 			/*/

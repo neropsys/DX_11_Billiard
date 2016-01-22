@@ -347,25 +347,6 @@ int d3d::EnterMsgLoop(bool(*ptr_display)(float timeDelta))
 			mPrevTime = currTime;
 		}
 	}
-	/*
-	static double lastTime = (double)timeGetTime();
-
-	while (msg.message != WM_QUIT)
-	{
-		if (::PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-		{
-			::TranslateMessage(&msg);
-			::DispatchMessage(&msg);
-		}
-		else
-		{
-			double currTime = (double)timeGetTime();
-			double timeDelta = (currTime - lastTime)*0.0007;
-			ptr_display((float)timeDelta);
-
-			lastTime = currTime;
-		}
-	}*/
 
 	return msg.wParam;
 }
