@@ -130,8 +130,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 			}
 
-			old_x = new_x;
-			old_y = new_y;
+
 			
 		}
 		else {
@@ -151,6 +150,9 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			move = WORLD_MOVE;
 			*/
 		}
+		old_x = new_x;
+		old_y = new_y;
+
 		break;
 	}
 	}
