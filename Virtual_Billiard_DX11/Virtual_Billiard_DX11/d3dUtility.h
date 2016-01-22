@@ -64,7 +64,6 @@ namespace d3d
 	extern ID3D11DepthStencilState* depthStencilState;
 	extern ID3D11DepthStencilView* depthStencilView;
 	extern ID3D11RasterizerState* normalState;
-	extern ID3D11RasterizerState* wireframeState;
 
 	static DirectX::XMMATRIX g_world;
 	static DirectX::XMMATRIX g_view;

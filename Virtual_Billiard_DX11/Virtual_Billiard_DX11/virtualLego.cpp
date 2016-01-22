@@ -17,6 +17,8 @@ XMMATRIX g_mWorld;
 XMMATRIX g_mView;
 XMMATRIX g_mProj;
 
+static bool wireMode = false;
+
 CWall wall;
 
 // -----------------------------------------------------------------------------
@@ -29,7 +31,7 @@ bool Display(float timeDelta)
 
 		d3d::BeginScene();
 		//render shit
-		wall.draw(g_mWorld, g_mView, g_mProj);
+		wall.draw(g_mWorld, g_mView, g_mProj, wireMode);
 		//wall.draw()
 		d3d::EndScene();
 		return true;	
@@ -57,7 +59,6 @@ bool Setup(){
 
 LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam){
 
-	static bool wire = false;
 	static bool isReset = true;
 	static int old_x = 0;
 	static int old_y = 0;
@@ -77,8 +78,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		case VK_RETURN:
 			if (NULL != device) {
-				wire = !wire;
-				deviceContext->RSSetState(wire ? d3d::wireframeState : d3d::normalState);
+				wireMode = !wireMode;				
 			}
 			break;
 		case VK_SPACE:

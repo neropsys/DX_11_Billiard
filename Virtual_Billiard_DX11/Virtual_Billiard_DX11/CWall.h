@@ -14,7 +14,7 @@ public:
 	bool create(float iwidth,
 				float iheight,
 				float idepth);
-	void draw(const DirectX::XMMATRIX& world, const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& proj);
+	void draw(const DirectX::XMMATRIX& world, const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& proj, bool wireframe);
 private:
 	std::unique_ptr<DirectX::GeometricPrimitive> shape;
 

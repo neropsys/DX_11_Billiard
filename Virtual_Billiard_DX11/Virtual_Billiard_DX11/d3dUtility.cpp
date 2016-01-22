@@ -9,7 +9,6 @@ ID3D11Texture2D* d3d::depthStencilBuffer = nullptr;
 ID3D11DepthStencilState* d3d::depthStencilState = nullptr;
 ID3D11DepthStencilView* d3d::depthStencilView = nullptr;
 ID3D11RasterizerState* d3d::normalState = nullptr;
-ID3D11RasterizerState*  d3d::wireframeState= nullptr;
 
 bool d3d::InitD3D(
 	HINSTANCE hInstance,
@@ -86,7 +85,6 @@ bool d3d::InitD3D(
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
 	D3D11_RASTERIZER_DESC normalRasterDesc;
-	D3D11_RASTERIZER_DESC wireframeRasterDesc;
 	D3D11_VIEWPORT viewport;
 	float fieldOfView, screenAspect;
 
@@ -168,6 +166,7 @@ bool d3d::InitD3D(
 	swapChainDesc.BufferDesc.Height = height;
 
 	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
 	swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
 	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 
@@ -178,6 +177,7 @@ bool d3d::InitD3D(
 
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
+
 	swapChainDesc.Windowed = true;
 
 	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
@@ -279,27 +279,22 @@ bool d3d::InitD3D(
 	normalRasterDesc.AntialiasedLineEnable = false;
 	normalRasterDesc.CullMode = D3D11_CULL_BACK;
 	normalRasterDesc.DepthBias = 0;
-	normalRasterDesc.DepthBiasClamp = 0.0f;
+	normalRasterDesc.DepthBiasClamp = 0.f;
 	normalRasterDesc.DepthClipEnable = true;
 	normalRasterDesc.FillMode = D3D11_FILL_SOLID;
-	normalRasterDesc.FrontCounterClockwise = false;
+	normalRasterDesc.FrontCounterClockwise = true;
 	normalRasterDesc.MultisampleEnable = false;
 	normalRasterDesc.ScissorEnable = false;
 	normalRasterDesc.SlopeScaledDepthBias = 0.0f;
 
-	wireframeRasterDesc = normalRasterDesc;
-	wireframeRasterDesc.FillMode = D3D11_FILL_WIREFRAME;
+
 
 	result = (*device)->CreateRasterizerState(&normalRasterDesc, &normalState);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to get normal rasterizer state. \r\n ");
 		return false;
 	}
-	result = (*device)->CreateRasterizerState(&wireframeRasterDesc, &wireframeState);
-	if (FAILED(result)){
-		OutputDebugStringW(L"Failed to get wireframe rasterizer state. \r\n ");
-		return false;
-	}
+	
 
 	deviceContext->RSSetState(normalState);
 
@@ -381,7 +376,6 @@ void d3d::CleanUp()
 		swapChain->SetFullscreenState(FALSE, nullptr);
 	Release(swapChain);
 	Release(normalState);
-	Release(wireframeState);
 	Release(deviceContext);
 	Release(renderTargetView);
 	Release(depthStencilState);
