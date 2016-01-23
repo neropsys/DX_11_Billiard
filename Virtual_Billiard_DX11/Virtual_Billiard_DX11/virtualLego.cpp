@@ -1,6 +1,7 @@
 
 #include "d3dUtility.h"
 #include "CWall.h"
+#include "CSphere.h"
 #include <DirectXMath.h>
 #include <ctime>
 
@@ -21,7 +22,11 @@ static bool wireMode = false;
 
 CWall g_legoPlane;
 CWall g_legowall[4];
+CSphere g_sphere[4];
 
+const XMVECTORF32 sphereColor[4] = {Colors::Red, Colors::Red, Colors::Yellow, Colors::White};
+
+const float spherePos[4][2] = { { -2.7f, 0 }, { +2.4f, 0 }, { 3.3f, 0 }, { -2.7f, -0.9f } };
 // -----------------------------------------------------------------------------
 // Transform matrices
 // -----------------------------------------------------------------------------
@@ -32,13 +37,24 @@ bool Display(float timeDelta)
 	{
 
 		d3d::BeginScene();
+		// update the position of each ball.during update, check whether each ball hit by walls.
+		for (i = 0; i < 4; i++)
+		{
+			g_sphere[i].ballUpdate(timeDelta);
+		}
+
 
 		//render shit
 		g_legoPlane.draw(g_mWorld, g_mView, g_mProj, wireMode);
 
 		for (int i = 0; i < 4; i++){
 			g_legowall[i].draw(g_mWorld, g_mView, g_mProj, wireMode);
+			g_sphere[i].draw(g_mWorld, g_mView, g_mProj, wireMode);
 		}
+
+
+
+		
 
 
 		d3d::EndScene();
@@ -49,6 +65,7 @@ bool Display(float timeDelta)
 
 }
 bool Setup(){
+	int i;
 
 	//setup model and some shit
 	if (false == g_legoPlane.create(9, 0.03f, 6, Colors::DarkGreen)) return false;
@@ -66,8 +83,13 @@ bool Setup(){
 	if (false == g_legowall[3].create(0.12f, 0.3f, 6.24f, Colors::DarkRed)) return false;
 	g_legowall[3].setPosition(-4.56f, 0.12f, 0.0f);
 
-
-
+	for (i = 0; i < 4; i++)
+	{
+		if (false == g_sphere[i].create(sphereColor[i])) return false;
+		g_sphere[i].setCenter(spherePos[i][0], (float)M_RADIUS, spherePos[i][1]);
+		g_sphere[i].setPower(0, 0);
+	}
+	//g_sphere[1].setPower(1, 1);
 	//setup position and aim the camera
 	XMFLOAT3 pos(0.f, 8.f, 8.f);
 	XMFLOAT3 target(0.f, 0.f, 0.f);

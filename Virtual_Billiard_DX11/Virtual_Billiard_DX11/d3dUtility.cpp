@@ -368,9 +368,9 @@ void d3d::CleanUp()
 void d3d::BeginScene()
 {
 	float color[4];
-	color[0] = 0.5f;//red
-	color[1] = 0.5f;//green
-	color[2] = 0.5f;//blue
+	color[0] = 0.7f;//red
+	color[1] = 0.7f;//green
+	color[2] = 0.7f;//blue
 	color[3] = 1;//alpha
 	d3d::deviceContext->ClearRenderTargetView(d3d::renderTargetView, color);
 	d3d::deviceContext->ClearDepthStencilView(d3d::depthStencilView, D3D11_CLEAR_DEPTH, 1.f, 0);
@@ -384,7 +384,6 @@ void d3d::EndScene()
 
 const DirectX::XMMATRIX d3d::getProjectionMatrix()
 {
-	//return XMMatrixPerspectiveFovLH(fieldOfView, screenAspect, screenNear, screenDepth);
 	return d3d::g_proj;
 }
 

@@ -5,12 +5,15 @@ using namespace DirectX;
 
 CWall::CWall()
 {
-
+	m_mLocal = XMMatrixIdentity();
+	ZeroMemory(&m_color, sizeof(m_color));
+	m_width = 0;
+	m_depth = 0;
+	m_pBoundMesh = nullptr;
 }
 
 CWall::~CWall()
 {
-
 }
 
 bool CWall::create(float iwidth, float iheight, float idepth, const DirectX::XMVECTORF32& color)
@@ -39,7 +42,6 @@ void CWall::setPosition(float x, float y, float z)
 
 void CWall::draw(const DirectX::XMMATRIX& world, const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& proj, bool wireframe)
 {
-
 	m_pBoundMesh->Draw(m_mLocal * world, view, proj, m_color, nullptr, wireframe);
 }
 
