@@ -19,20 +19,28 @@ XMMATRIX g_mProj;
 
 static bool wireMode = false;
 
-CWall wall;
+CWall g_legoPlane;
+CWall g_legowall[4];
 
 // -----------------------------------------------------------------------------
 // Transform matrices
 // -----------------------------------------------------------------------------
 bool Display(float timeDelta)
 {
+	int i = 0;
 	if (device)
 	{
 
 		d3d::BeginScene();
+
 		//render shit
-		wall.draw(g_mWorld, g_mView, g_mProj, wireMode);
-		//wall.draw()
+		g_legoPlane.draw(g_mWorld, g_mView, g_mProj, wireMode);
+
+		for (int i = 0; i < 4; i++){
+			g_legowall[i].draw(g_mWorld, g_mView, g_mProj, wireMode);
+		}
+
+
 		d3d::EndScene();
 		return true;	
 	}
@@ -41,13 +49,29 @@ bool Display(float timeDelta)
 
 }
 bool Setup(){
-	wall.create(200, 200, 200);
+
 	//setup model and some shit
+	if (false == g_legoPlane.create(9, 0.03f, 6, Colors::DarkGreen)) return false;
+	g_legoPlane.setPosition(0.0f, -0.0006f / 5, 0.0f);
+
+	if (false == g_legowall[0].create(9, 0.3f, 0.12f, Colors::DarkRed)) return false;
+	g_legowall[0].setPosition(0.0f, 0.12f, -3.06f);
+
+	if (false == g_legowall[1].create(9, 0.3f, 0.12f, Colors::DarkRed)) return false;
+	g_legowall[1].setPosition(0.0f, 0.12f, 3.06f);
+
+	if (false == g_legowall[2].create(0.12f, 0.3f, 6.24f, Colors::DarkRed)) return false;
+	g_legowall[2].setPosition(4.56f, 0.12f, 0.0f);
+
+	if (false == g_legowall[3].create(0.12f, 0.3f, 6.24f, Colors::DarkRed)) return false;
+	g_legowall[3].setPosition(-4.56f, 0.12f, 0.0f);
+
+
 
 	//setup position and aim the camera
-	XMFLOAT3 pos(0.f, 5.f, -8.f);
+	XMFLOAT3 pos(0.f, 8.f, 8.f);
 	XMFLOAT3 target(0.f, 0.f, 0.f);
-	XMFLOAT3 up(0.f, 2.f, 0.f);
+	XMFLOAT3 up(0.f, -2.f, 0.f);
 
 	g_mView = XMMatrixLookAtLH(XMLoadFloat3(&pos), XMLoadFloat3(&target), XMLoadFloat3(&up));
 	g_mWorld = d3d::getWorldMatrix();

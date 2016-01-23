@@ -95,7 +95,7 @@ bool d3d::InitD3D(
 		return false;
 	}
 
-	//enumerates adapters so that we can
+	//TODO:add additional explanation/enumerates adapters so that we can process something that follows right below
 	result = factory->EnumAdapters(0, &adapter);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to to create an adapter for the primary graphics interface.\r\n ");
