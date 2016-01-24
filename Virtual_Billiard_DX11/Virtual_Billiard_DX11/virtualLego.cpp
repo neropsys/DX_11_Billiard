@@ -23,6 +23,7 @@ static bool wireMode = false;
 CWall g_legoPlane;
 CWall g_legowall[4];
 CSphere g_sphere[4];
+CSphere g_target_blueball;
 
 const XMVECTORF32 sphereColor[4] = {Colors::Red, Colors::Red, Colors::Yellow, Colors::White};
 
@@ -52,7 +53,7 @@ bool Display(float timeDelta)
 			g_sphere[i].draw(g_mWorld, g_mView, g_mProj, wireMode);
 		}
 
-
+		g_target_blueball.draw(g_mWorld, g_mView, g_mProj, wireMode);
 
 		
 
@@ -82,6 +83,9 @@ bool Setup(){
 
 	if (false == g_legowall[3].create(0.12f, 0.3f, 6.24f, Colors::DarkRed)) return false;
 	g_legowall[3].setPosition(-4.56f, 0.12f, 0.0f);
+
+	if (false == g_target_blueball.create(Colors::Blue)) return false;
+	g_target_blueball.setCenter(.0f, float(M_RADIUS), .0f);
 
 	for (i = 0; i < 4; i++)
 	{
@@ -129,17 +133,17 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		case VK_SPACE:
 			//game event
-			/*
-			D3DXVECTOR3 targetpos = g_target_blueball.getCenter();
-			D3DXVECTOR3	whitepos = g_sphere[3].getCenter();
+			
+			auto targetpos = g_target_blueball.getCenter();
+			auto whitepos = g_sphere[3].getCenter();
 			double theta = acos(sqrt(pow(targetpos.x - whitepos.x, 2)) / sqrt(pow(targetpos.x - whitepos.x, 2) +
 			pow(targetpos.z - whitepos.z, 2)));		// 기본 1 사분면
 			if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 사분면
-			if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = PI - theta; } //2 사분면
-			if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0){ theta = PI + theta; } // 3 사분면
+			if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = XM_PI - theta; } //2 사분면
+			if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0){ theta = XM_PI + theta; } // 3 사분면
 			double distance = sqrt(pow(targetpos.x - whitepos.x, 2) + pow(targetpos.z - whitepos.z, 2));
 			g_sphere[3].setPower(distance * cos(theta), distance * sin(theta));
-			*/
+			
 			break;
 		}
 		break;
@@ -180,21 +184,22 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			
 		}
 		else {
-			/*/
+			
 			isReset = true;
 
 			if (LOWORD(wParam) & MK_RBUTTON) {
 				dx = (old_x - new_x);// * 0.01f;
 				dy = (old_y - new_y);// * 0.01f;
 
-				D3DXVECTOR3 coord3d = g_target_blueball.getCenter();
+				dy *= -1;
+				auto coord3d = g_target_blueball.getCenter();
 				g_target_blueball.setCenter(coord3d.x + dx*(-0.007f), coord3d.y, coord3d.z + dy*0.007f);
 			}
 			old_x = new_x;
 			old_y = new_y;
 
 			move = WORLD_MOVE;
-			*/
+			
 		}
 		old_x = new_x;
 		old_y = new_y;

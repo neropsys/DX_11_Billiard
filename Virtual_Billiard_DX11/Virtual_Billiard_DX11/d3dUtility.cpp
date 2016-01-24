@@ -276,14 +276,14 @@ bool d3d::InitD3D(
 
 	deviceContext->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
 
-	normalRasterDesc.AntialiasedLineEnable = false;
+	normalRasterDesc.AntialiasedLineEnable = true;
 	normalRasterDesc.CullMode = D3D11_CULL_BACK;
 	normalRasterDesc.DepthBias = 0;
 	normalRasterDesc.DepthBiasClamp = 0.f;
 	normalRasterDesc.DepthClipEnable = true;
 	normalRasterDesc.FillMode = D3D11_FILL_SOLID;
 	normalRasterDesc.FrontCounterClockwise = true;
-	normalRasterDesc.MultisampleEnable = false;
+	normalRasterDesc.MultisampleEnable = true;
 	normalRasterDesc.ScissorEnable = false;
 	normalRasterDesc.SlopeScaledDepthBias = 0.0f;
 
@@ -326,6 +326,7 @@ int d3d::EnterMsgLoop(bool(*ptr_display)(float timeDelta))
 	MSG msg;
 	::ZeroMemory(&msg, sizeof(MSG));
 	
+	static double lastTime = (double)timeGetTime();
 	
 
 	while (msg.message != WM_QUIT)
@@ -337,14 +338,25 @@ int d3d::EnterMsgLoop(bool(*ptr_display)(float timeDelta))
 		}
 		else
 		{
+			double currTime = (double)timeGetTime();
+			double timeDelta = (currTime - lastTime) * 0.0007;
+			ptr_display((float)timeDelta);
+			lastTime = currTime;
+			/*
 			__int64 currTime;
 			QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
 
+			__int64 countsPerSec;
+			QueryPerformanceFrequency((LARGE_INTEGER*)&countsPerSec);
+
+			mSecondsPerCount = 1.0 / (double)countsPerSec;
+
 			mCurrTime = currTime;
 
-			__int64 deltaTime = (mCurrTime - mPrevTime) * 0.0007;
+			__int64 deltaTime = (mCurrTime - mPrevTime) * mSecondsPerCount;
 			ptr_display((float)deltaTime);
 			mPrevTime = currTime;
+			*/
 		}
 	}
 

@@ -7,6 +7,7 @@
 
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "winmm.lib")
 
 #include <dxgi.h>
 #include <d3d11.h>
@@ -71,6 +72,8 @@ namespace d3d
 
 	static __int64 mCurrTime;
 	static __int64 mPrevTime;
+	static double mSecondsPerCount;
+
 
 	const float SCREEN_DEPTH = 1000.0f;
 	const float SCREEN_NEAR = .1f;
