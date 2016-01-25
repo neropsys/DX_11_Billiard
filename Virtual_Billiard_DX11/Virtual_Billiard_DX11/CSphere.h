@@ -5,7 +5,6 @@
 * \author Hyuk-jae Chang, ¿Â«ı¿Á
 * Contact: neropsys@gmail.com
 */
-
 #pragma once
 #include "GeometricPrimitive.h"
 #include "d3dUtility.h"

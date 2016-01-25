@@ -5,7 +5,6 @@
 * \author Hyuk-jae Chang, ¿Â«ı¿Á
 * Contact: neropsys@gmail.com
 */
-
 #include "CSphere.h"
 using namespace DirectX;
 

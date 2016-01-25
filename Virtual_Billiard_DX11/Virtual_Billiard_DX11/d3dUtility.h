@@ -7,11 +7,7 @@
 * Contact: neropsys@gmail.com
 */
 //Desc : Initializes D3D and lets the user define message loop
-
-
 #pragma once
-
-
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "winmm.lib")
