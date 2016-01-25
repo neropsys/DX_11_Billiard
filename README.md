@@ -2,7 +2,7 @@
 
 DirectX 11 version of Billiard game used on OOP class, assignment No.3
 
-Build & Run Tested on
+Build & Run tested on
 
-Visual Studio 2013 Professional
-Visual Studio Community 2015
+* Visual Studio 2013 Professional
+* Visual Studio Community 2015
