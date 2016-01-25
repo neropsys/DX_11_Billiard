@@ -1,5 +1,12 @@
-
-//Made by hjchang 2016-01
+//Made by hjchang ¿Â«ı¿Á 2016-01
+/*!
+* \file d3dUtility.h
+* \date 2016/01
+*
+* \author Hyuk-jae Chang, ¿Â«ı¿Á
+* Contact: neropsys@gmail.com
+*/
+//Desc : Initializes D3D and lets the user define message loop
 
 
 #pragma once
@@ -53,10 +60,6 @@ namespace d3d
 		WPARAM wParam,
 		LPARAM lParam);
 
-	const DirectX::XMMATRIX getWorldMatrix();
-	const DirectX::XMMATRIX getProjectionMatrix();
-	
-	void setWorldMatrix(const DirectX::XMMATRIX&);
 
 	extern IDXGISwapChain* swapChain;
 	extern ID3D11DeviceContext* deviceContext;
@@ -66,17 +69,8 @@ namespace d3d
 	extern ID3D11DepthStencilView* depthStencilView;
 	extern ID3D11RasterizerState* normalState;
 
-	static DirectX::XMMATRIX g_world;
-	static DirectX::XMMATRIX g_view;
-	static DirectX::XMMATRIX g_proj;
-
-	static __int64 mCurrTime;
-	static __int64 mPrevTime;
-	static double mSecondsPerCount;
-
-
-	const float SCREEN_DEPTH = 1000.0f;
-	const float SCREEN_NEAR = .1f;
+	const float SCREEN_DEPTH = 100.0f;
+	const float SCREEN_NEAR = 1.f;
 
 
 }

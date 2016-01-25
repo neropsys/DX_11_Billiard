@@ -1,3 +1,11 @@
+/*!
+* \file CSphere.cpp
+* \date 2016/01
+*
+* \author Hyuk-jae Chang, ÀåÇõÀç
+* Contact: neropsys@gmail.com
+*/
+
 #include "CSphere.h"
 using namespace DirectX;
 
@@ -73,7 +81,6 @@ void CSphere::ballUpdate(float timeDiff)
 		this->setCenter(tX, cord.y, tZ);
 	}
 	else { this->setPower(0, 0); }
-	//this->setPower(this->getVelocity_X() * DECREASE_RATE, this->getVelocity_Z() * DECREASE_RATE);
 	double rate = 1 - (1 - DECREASE_RATE)*timeDiff * 400;
 	if (rate < 0)
 		rate = 0;

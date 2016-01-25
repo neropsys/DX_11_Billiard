@@ -1,7 +1,13 @@
+/*!
+* \file CWall.cpp
+* \date 2016/01
+*
+* \author Hyuk-jae Chang, ¿Â«ı¿Á
+* Contact: neropsys@gmail.com
+*/
 #include "CWall.h"
 
 using namespace DirectX;
-
 
 CWall::CWall()
 {
@@ -52,3 +58,12 @@ void CWall::destroy()
 	}
 }
 
+void CWall::hitBy(CSphere& ball)
+{
+	// Insert your code here.
+}
+bool CWall::hasIntersected(CSphere& ball)
+{
+	//Insert your code here.
+	return false;
+}

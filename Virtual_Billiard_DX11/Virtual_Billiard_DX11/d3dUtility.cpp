@@ -1,3 +1,11 @@
+/*!
+* \file d3dUtility.cpp
+* \date 2016/01
+*
+* \author Hyuk-jae Chang, ÀåÇõÀç
+* Contact: neropsys@gmail.com
+*/
+
 #include "d3dUtility.h"
 
 using namespace DirectX;
@@ -17,9 +25,9 @@ bool d3d::InitD3D(
 	ID3D11Device** device
 	)
 {
-	//setup window property
 	WNDCLASS wc;
 
+	//setup window class with default setting
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = (WNDPROC)d3d::WndProc;
 	wc.cbClsExtra = 0;
@@ -29,8 +37,9 @@ bool d3d::InitD3D(
 	wc.hCursor = LoadCursor(0, IDC_ARROW);
 	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 	wc.lpszMenuName = 0;
-	wc.lpszClassName = "Direct3D9App";
+	wc.lpszClassName = "Direct3D11App";
 
+	//register window class
 	if (!RegisterClass(&wc))
 	{
 		::MessageBox(0, "RegisterClass() - FAILED", 0, 0);
@@ -38,7 +47,9 @@ bool d3d::InitD3D(
 	}
 
 	HWND hwnd = 0;
-	hwnd = ::CreateWindow("Direct3D9App",
+
+	//creates window and get the handle to it
+	hwnd = ::CreateWindow("Direct3D11App",
 		"Virtual Billiard",
 		WS_POPUP,
 		0, 0, width, height,
@@ -86,45 +97,49 @@ bool d3d::InitD3D(
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
 	D3D11_RASTERIZER_DESC normalRasterDesc;
 	D3D11_VIEWPORT viewport;
-	float fieldOfView, screenAspect;
 
-	//creates dxgiFactory so that we can enumerate adapter
+	//creates directX graphics interface factory
 	result = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to create dxgifactory.\r\n ");
 		return false;
 	}
 
-	//TODO:add additional explanation/enumerates adapters so that we can process something that follows right below
+	//use factory to create an adapter for primary graphics interface
 	result = factory->EnumAdapters(0, &adapter);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to to create an adapter for the primary graphics interface.\r\n ");
 		return false;
 	}
+	//enumerate primary adapter output(monitor)
 	result = adapter->EnumOutputs(0, &adapterOutput);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to enumerate primary adapter output.\r\n ");
 		return false;
 	}
 
-	//gets displaymode list
+	//get the number of modes that fit the DXGI_FORMAT_R8G8B8A8_UNORM display format for the adapter output(monitor)
 	result = adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, NULL);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to get the number of modes that fit the DXGI_FORMAT_R8G8B8A8_UNORM display format for the adapter output.\r\n ");
 		return false;
 	}
+
+	//crate a list to hold all possible display modes for this monitor/video combination
 	displayModeList = new DXGI_MODE_DESC[numModes];
 	if (!displayModeList){
 		OutputDebugStringW(L"Failed to create a list to hold all the possible display modes for this monitor/video card combination.\r\n ");
 		return false;
 	}
-
+	//fill the display mode list structure
 	result = adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, displayModeList);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to fill the display mode list structures.\r\n ");
 		return false;
 	}
 
+	//go through all the display modes and find the one that matches the screen width & height
+	//when match is found, store the numerator and denominator of the refresh rate for that monitor
 	for (i = 0; i < numModes; i++){
 		if (displayModeList[i].Width == (unsigned int)width){
 			if (displayModeList[i].Height == (unsigned int)height){
@@ -133,13 +148,18 @@ bool d3d::InitD3D(
 			}
 		}
 	}
+
+	//gett the adapter(video card) description;
 	result = adapter->GetDesc(&adapterDesc);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to get the adapter description.\r\n ");
 		return false;
 	}
+
+	//store the dedicated video card memory in megabyte
 	videoCardMemory = (int)(adapterDesc.DedicatedVideoMemory / 1024 / 1024);
 
+	//convert name of the video card to character array and store 
 	error = wcstombs_s(&stringLength, videoCardDesc, 128, adapterDesc.Description, 128);
 	if (error != 0){
 		OutputDebugStringW(L"Failed to get the video card name \r\n");
@@ -147,6 +167,7 @@ bool d3d::InitD3D(
 
 	}
 
+	//cleanup 
 	delete[] displayModeList;
 	displayModeList = nullptr;
 
@@ -161,59 +182,73 @@ bool d3d::InitD3D(
 
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
 
+	//set to single back buffer and set the width & height
 	swapChainDesc.BufferCount = 1;
 	swapChainDesc.BufferDesc.Width = width;
 	swapChainDesc.BufferDesc.Height = height;
 
+	//set regular 32bit surface for back buffer
 	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
+	//set refresh rate(vsync disabled)
 	swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
 	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 
-
+	//set usage of back buffer
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 
+	//set handle for window to render to
 	swapChainDesc.OutputWindow = hwnd;
 
+	//multisampling off
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
 
 	swapChainDesc.Windowed = true;
 
+	//set scan line ordering and scaling to unspecified
 	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
+	//discard back buffer content after present
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
+	//no advanced flag
 	swapChainDesc.Flags = 0;
 
+	//dx11 feature level
 	featureLevel = D3D_FEATURE_LEVEL_11_0;
 
-	//set 4th parameter to D3D11_CREATE_DEVICE_DEBUG if you have any problem debugging the code
 
+	//create swap chain, direct3d device, and device context
+	//set 4th parameter to D3D11_CREATE_DEVICE_DEBUG if you have any problem debugging the code
 	result = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, &featureLevel, 1,
 		D3D11_SDK_VERSION, &swapChainDesc, &swapChain, device, nullptr, &deviceContext);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to create device and swapchain");
 		return false;
 	}
+
+	//get ptr to back buffer
 	result = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPtr);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to get the pointer to the back buffer.\r\n ");
 		return false;
 	}
-
+	//create render target view with back buffer ptr
 	result = (*device)->CreateRenderTargetView(backBufferPtr, nullptr, &renderTargetView);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to create render target view with back buffer pointer.\r\n ");
 		return false;
 	}
 
+	//cleanup back buffer ptr
 	backBufferPtr->Release();
 	backBufferPtr = nullptr;
 
 	ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
 
+	//setup description of the depth buffer
 	depthBufferDesc.Width = width;
 	depthBufferDesc.Height = height;
 	depthBufferDesc.MipLevels = 1;
@@ -226,6 +261,7 @@ bool d3d::InitD3D(
 	depthBufferDesc.CPUAccessFlags = 0;
 	depthBufferDesc.MiscFlags = 0;
 
+	//create texture for depth buffer using filled out description
 	result = (*device)->CreateTexture2D(&depthBufferDesc, NULL, &depthStencilBuffer);
 	if (FAILED(result)){
 		OutputDebugStringW(L"failed to create texture for the depth buffer using description.\r\n ");
@@ -234,6 +270,7 @@ bool d3d::InitD3D(
 
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
 
+	//setup description of the stencil state
 	depthStencilDesc.DepthEnable = true;
 	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
@@ -254,28 +291,34 @@ bool d3d::InitD3D(
 	depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
+	//create depth stencil state
 	result = (*device)->CreateDepthStencilState(&depthStencilDesc, &depthStencilState);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to create depth stencil state.\r\n ");
 		return false;
 	}
 
+	//set depth stencil state
 	deviceContext->OMSetDepthStencilState(depthStencilState, 1);
 
 	ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
 
+	//setup deth stencil view description
 	depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	depthStencilViewDesc.Texture2D.MipSlice = 0;
 
+	//create depth stencil view
 	result = (*device)->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &depthStencilView);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to create depth stencil view. \r\n ");
 		return false;
 	}
 
+	//bind render target view
 	deviceContext->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
 
+	//setup raster description which will determine how and what polygons will be drawn
 	normalRasterDesc.AntialiasedLineEnable = true;
 	normalRasterDesc.CullMode = D3D11_CULL_BACK;
 	normalRasterDesc.DepthBias = 0;
@@ -288,16 +331,17 @@ bool d3d::InitD3D(
 	normalRasterDesc.SlopeScaledDepthBias = 0.0f;
 
 
-
+	//create rasterizer state from description above
 	result = (*device)->CreateRasterizerState(&normalRasterDesc, &normalState);
 	if (FAILED(result)){
 		OutputDebugStringW(L"Failed to get normal rasterizer state. \r\n ");
 		return false;
 	}
 	
-
+	//set rasterizer state
 	deviceContext->RSSetState(normalState);
 
+	//setup and create viewport
 	viewport.Width = (float)width;
 	viewport.Height = (float)height;
 	viewport.MinDepth = 0.0f;
@@ -306,17 +350,6 @@ bool d3d::InitD3D(
 	viewport.TopLeftY = 0.0f;
 
 	deviceContext->RSSetViewports(1, &viewport);
-
-	fieldOfView = (float)DirectX::XM_PI *.25f;
-
-	screenAspect = (float)width / (float)height;
-
-	
-	g_proj = XMMatrixPerspectiveFovLH(fieldOfView, screenAspect, d3d::SCREEN_NEAR, d3d::SCREEN_DEPTH);
-
-	g_world = XMMatrixIdentity();
-
-	//m_orthoMatrix = XMMatrixOrthographicLH(screenWidth, screenHeight, screenNear, screenDepth);
 
 	return true;
 }
@@ -394,17 +427,5 @@ void d3d::EndScene()
 	d3d::swapChain->Present(0, 0);
 }
 
-const DirectX::XMMATRIX d3d::getProjectionMatrix()
-{
-	return d3d::g_proj;
-}
 
-const DirectX::XMMATRIX d3d::getWorldMatrix()
-{
-	return d3d::g_world;
-}
 
-void d3d::setWorldMatrix(const DirectX::XMMATRIX& matrix)
-{
-	d3d::g_world = matrix;
-}

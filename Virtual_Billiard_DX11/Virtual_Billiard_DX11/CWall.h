@@ -1,11 +1,17 @@
-
+/*!
+* \file CWall.h
+* \date 2016/01
+*
+* \author Hyuk-jae Chang, ¿Â«ı¿Á
+* Contact: neropsys@gmail.com
+*/
 #pragma once
 #include "GeometricPrimitive.h"
 #include "d3dUtility.h"
 #include <DirectXMath.h>
 #include <memory>
 
-
+class CSphere;
 class CWall{
 public:
 	CWall();
@@ -19,6 +25,11 @@ public:
 	void setPosition(float x, float y, float z);
 
 	void draw(const DirectX::XMMATRIX& world, const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& proj, bool wireframe);
+
+	bool hasIntersected(CSphere& ball);
+
+	void hitBy(CSphere& ball);
+
 
 	void destroy();
 

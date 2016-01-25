@@ -1,10 +1,15 @@
-
+/*!
+* \file virtualLego.cpp
+* \date 2016/01
+*
+* \author Hyuk-jae Chang, ¿Â«ı¿Á
+* Contact: neropsys@gmail.com
+*/
 #include "d3dUtility.h"
 #include "CWall.h"
 #include "CSphere.h"
 #include <DirectXMath.h>
 #include <ctime>
-
 
 using namespace DirectX;
 
@@ -34,29 +39,44 @@ const float spherePos[4][2] = { { -2.7f, 0 }, { +2.4f, 0 }, { 3.3f, 0 }, { -2.7f
 bool Display(float timeDelta)
 {
 	int i = 0;
+	int j = 0;
 	if (device)
 	{
 
 		d3d::BeginScene();
+
 		// update the position of each ball.during update, check whether each ball hit by walls.
 		for (i = 0; i < 4; i++)
 		{
 			g_sphere[i].ballUpdate(timeDelta);
+			for (j = 0; j < 4; j++)
+			{
+				g_legowall[i].hitBy(g_sphere[j]);
+			}
 		}
 
 
-		//render shit
+		//check whether any two balls hit together and update the direction of balls
+
+		for (i = 0; i < 4; i++)
+		{
+			for (j = 0; j < 4; j++)
+			{
+				if (i >= j) continue;
+				g_sphere[i].hitBy(g_sphere[j]);
+			}
+		}
+
+		//draw plane, walls and spheres
 		g_legoPlane.draw(g_mWorld, g_mView, g_mProj, wireMode);
 
-		for (int i = 0; i < 4; i++){
+		for (int i = 0; i < 4; i++)
+		{
 			g_legowall[i].draw(g_mWorld, g_mView, g_mProj, wireMode);
 			g_sphere[i].draw(g_mWorld, g_mView, g_mProj, wireMode);
 		}
 
 		g_target_blueball.draw(g_mWorld, g_mView, g_mProj, wireMode);
-
-		
-
 
 		d3d::EndScene();
 		return true;	
@@ -68,7 +88,7 @@ bool Display(float timeDelta)
 bool Setup(){
 	int i;
 
-	//setup model and some shit
+	//setup model
 	if (false == g_legoPlane.create(9, 0.03f, 6, Colors::DarkGreen)) return false;
 	g_legoPlane.setPosition(0.0f, -0.0006f / 5, 0.0f);
 
@@ -93,15 +113,17 @@ bool Setup(){
 		g_sphere[i].setCenter(spherePos[i][0], (float)M_RADIUS, spherePos[i][1]);
 		g_sphere[i].setPower(0, 0);
 	}
-	//g_sphere[1].setPower(1, 1);
+
 	//setup position and aim the camera
-	XMFLOAT3 pos(0.f, 8.f, 8.f);
+	
+	XMFLOAT3 pos(0.f, 9.f, 7.f);
 	XMFLOAT3 target(0.f, 0.f, 0.f);
 	XMFLOAT3 up(0.f, -2.f, 0.f);
+	
 
 	g_mView = XMMatrixLookAtLH(XMLoadFloat3(&pos), XMLoadFloat3(&target), XMLoadFloat3(&up));
-	g_mWorld = d3d::getWorldMatrix();
-	g_mProj = d3d::getProjectionMatrix();
+	g_mWorld = XMMatrixIdentity();
+	g_mProj = XMMatrixPerspectiveFovLH(XM_PI / 4, (float)Width / (float)Height, 1.f, 100.f);
 
 
 	return true;
@@ -171,10 +193,10 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				case WORLD_MOVE:
 					dx = (old_x - new_x) * 0.01f;
 					dy = (old_y - new_y) * 0.01f;
+					dx *= -1;
 					mX = XMMatrixRotationY(dx);
 					mY = XMMatrixRotationX(dy);
 					g_mWorld = g_mWorld * mX * mY;
-					d3d::setWorldMatrix(g_mWorld);
 
 					break;
 				}
@@ -192,6 +214,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				dy = (old_y - new_y);// * 0.01f;
 
 				dy *= -1;
+
 				auto coord3d = g_target_blueball.getCenter();
 				g_target_blueball.setCenter(coord3d.x + dx*(-0.007f), coord3d.y, coord3d.z + dy*0.007f);
 			}

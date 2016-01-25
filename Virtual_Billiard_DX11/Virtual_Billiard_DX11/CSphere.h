@@ -1,3 +1,11 @@
+/*!
+* \file CSphere.h
+* \date 2016/01
+*
+* \author Hyuk-jae Chang, ¿Â«ı¿Á
+* Contact: neropsys@gmail.com
+*/
+
 #pragma once
 #include "GeometricPrimitive.h"
 #include "d3dUtility.h"
@@ -32,11 +40,9 @@ public:
 
 	inline float getRadius() const { return (float)(M_RADIUS); }
 
-	const DirectX::XMMATRIX& getLocalTransform() const { return m_mLocal; }
-	void setLocalTransform(const DirectX::XMMATRIX& mLocal) { m_mLocal = mLocal; }
-
 	DirectX::XMFLOAT3 getCenter() const;
 
+	inline void setLocalTransform(const DirectX::XMMATRIX& mLocal) { m_mLocal = mLocal; }
 	
 
 
@@ -52,4 +58,7 @@ private:
 	float m_radius;
 	float m_velocity_x;
 	float m_velocity_z;
+
+	
+
 };
