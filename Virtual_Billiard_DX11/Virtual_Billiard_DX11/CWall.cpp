@@ -31,7 +31,7 @@ bool CWall::create(float iwidth, float iheight, float idepth, const DirectX::XMV
 	m_depth = idepth;
 	m_color = color;
 
-	m_pBoundMesh = GeometricPrimitive::CreateBox(d3d::deviceContext, XMFLOAT3(iwidth, idepth, iheight), false, true);
+	m_pBoundMesh = GeometricPrimitive::CreateBox(d3d::deviceContext, XMFLOAT3(iwidth, iheight, idepth), false, true);
 
 	return true;
 }
@@ -41,7 +41,7 @@ void CWall::setPosition(float x, float y, float z)
 	XMMATRIX m;
 	this->m_x = x;
 	this->m_z = z;
-	m = XMMatrixTranslation(x, z, y);
+	m = XMMatrixTranslation(x, y, z);
 	setLocalTransform(m);
 
 }

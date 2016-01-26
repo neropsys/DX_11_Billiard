@@ -26,7 +26,7 @@ bool CSphere::create(const DirectX::XMVECTORF32& color)
 		return false;
 	m_color = color;
 	
-	m_pBoundMesh = GeometricPrimitive::CreateSphere(d3d::deviceContext, getRadius() * 2, 16U, false, true);
+	m_pBoundMesh = GeometricPrimitive::CreateSphere(d3d::deviceContext, getRadius() * 2, 16U, false, false);
 
 	return true;
 }
@@ -98,7 +98,7 @@ void CSphere::setCenter(float x, float y, float z)
 	center_x = x;
 	center_y = y;
 	center_z = z;
-	m = XMMatrixTranslation(x, z, y);
+	m = XMMatrixTranslation(x, y, z);
 	setLocalTransform(m);
 }
 

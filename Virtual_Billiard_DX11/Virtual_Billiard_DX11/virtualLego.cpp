@@ -117,7 +117,7 @@ bool Setup(){
 
 	//setup position and aim the camera
 	
-	XMFLOAT3 pos(0.f, -9.f, 7.f);
+	XMFLOAT3 pos(0.f, 9.f,- 7.f);
 	XMFLOAT3 target(0.f, 0.f, 0.f);
 	XMFLOAT3 up(0.f, 2.f, 0.f);
 	
@@ -194,7 +194,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				case WORLD_MOVE:
 					dx = (old_x - new_x) * 0.01f;
 					dy = (old_y - new_y) * 0.01f;
-					dy *= -1;
+				
 					mX = XMMatrixRotationY(dx);
 					mY = XMMatrixRotationX(dy);
 					g_mWorld = g_mWorld * mX * mY;
@@ -214,10 +214,11 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				dx = (old_x - new_x);// * 0.01f;
 				dy = (old_y - new_y);// * 0.01f;
 
-				dx *= -1;
+	
 
 				auto coord3d = g_target_blueball.getCenter();
 				g_target_blueball.setCenter(coord3d.x + dx*(-0.007f), coord3d.y, coord3d.z + dy*0.007f);
+
 			}
 			old_x = new_x;
 			old_y = new_y;
