@@ -51,7 +51,7 @@ bool d3d::InitD3D(
 	//creates window and get the handle to it
 	hwnd = ::CreateWindow("Direct3D11App",
 		"Virtual Billiard",
-		WS_POPUP,
+		WS_EX_TOPMOST,//WS_POPUP, <- use WS_POPUP if you want borderless window
 		0, 0, width, height,
 		0 /*parent hwnd*/, 0 /* menu */, hInstance, 0 /*extra*/);
 

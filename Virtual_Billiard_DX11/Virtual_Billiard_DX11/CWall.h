@@ -8,10 +8,10 @@
 #pragma once
 #include "GeometricPrimitive.h"
 #include "d3dUtility.h"
+#include "CSphere.h"
 #include <DirectXMath.h>
 #include <memory>
 
-class CSphere;
 class CWall{
 public:
 	CWall();
