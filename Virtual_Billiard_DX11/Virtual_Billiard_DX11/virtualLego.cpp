@@ -218,7 +218,6 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 				auto coord3d = g_target_blueball.getCenter();
 				g_target_blueball.setCenter(coord3d.x + dx*(-0.007f), coord3d.y, coord3d.z + dy*0.007f);
-				OutputDebugString(std::to_string(g_target_blueball.getCenter().z).c_str());
 			}
 			old_x = new_x;
 			old_y = new_y;
