@@ -74,178 +74,156 @@ bool d3d::InitD3D(
 
 	UINT w = rc.right - rc.left;
 	UINT h = rc.bottom - rc.top;
-
-
-	//
-	// Init D3D: 
-	//
-
 	HRESULT result = 0;
-	IDXGIFactory* factory;
-	IDXGIAdapter* adapter;
-	IDXGIOutput* adapterOutput;
-	unsigned int numModes, i, numerator, denominator, stringLength;
-	DXGI_MODE_DESC* displayModeList;
-	DXGI_ADAPTER_DESC adapterDesc;
-	int error, videoCardMemory;
-	char videoCardDesc[128];
-	DXGI_SWAP_CHAIN_DESC swapChainDesc;
-	D3D_FEATURE_LEVEL featureLevel;
-	ID3D11Texture2D* backBufferPtr;
+
+//
+// Init D3D: 
+//
+
+	D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_NULL;
+	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
+
+	ID3D11DeviceContext1* deviceContext1 = nullptr;
+	ID3D11Device1* device1 = nullptr;
+	IDXGISwapChain1*        swapChain1 = nullptr;
+	HRESULT hr = S_OK;
+
 	D3D11_TEXTURE2D_DESC depthBufferDesc;
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
-	D3D11_RASTERIZER_DESC normalRasterDesc;
-	D3D11_VIEWPORT viewport;
 
-	//creates directX graphics interface factory
-	result = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
-	if (FAILED(result)){
-		OutputDebugStringW(L"Failed to create dxgifactory.\r\n ");
-		return false;
-	}
 
-	//use factory to create an adapter for primary graphics interface
-	result = factory->EnumAdapters(0, &adapter);
-	if (FAILED(result)){
-		OutputDebugStringW(L"Failed to to create an adapter for the primary graphics interface.\r\n ");
-		return false;
-	}
-	//enumerate primary adapter output(monitor)
-	result = adapter->EnumOutputs(0, &adapterOutput);
-	if (FAILED(result)){
-		OutputDebugStringW(L"Failed to enumerate primary adapter output.\r\n ");
-		return false;
-	}
 
-	//get the number of modes that fit the DXGI_FORMAT_R8G8B8A8_UNORM display format for the adapter output(monitor)
-	result = adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, NULL);
-	if (FAILED(result)){
-		OutputDebugStringW(L"Failed to get the number of modes that fit the DXGI_FORMAT_R8G8B8A8_UNORM display format for the adapter output.\r\n ");
-		return false;
-	}
+	UINT createDeviceFlags = 0;
+#ifdef _DEBUG
+	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
 
-	//crate a list to hold all possible display modes for this monitor/video combination
-	displayModeList = new DXGI_MODE_DESC[numModes];
-	if (!displayModeList){
-		OutputDebugStringW(L"Failed to create a list to hold all the possible display modes for this monitor/video card combination.\r\n ");
-		return false;
-	}
-	//fill the display mode list structure
-	result = adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, displayModeList);
-	if (FAILED(result)){
-		OutputDebugStringW(L"Failed to fill the display mode list structures.\r\n ");
-		return false;
-	}
+	D3D_DRIVER_TYPE driverTypes[] =
+	{
+		D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_WARP,
+		D3D_DRIVER_TYPE_REFERENCE,
+	};
+	UINT numDriverTypes = ARRAYSIZE(driverTypes);
 
-	//go through all the display modes and find the one that matches the screen width & height
-	//when match is found, store the numerator and denominator of the refresh rate for that monitor
-	for (i = 0; i < numModes; i++){
-		if (displayModeList[i].Width == (unsigned int)width){
-			if (displayModeList[i].Height == (unsigned int)height){
-				numerator = displayModeList[i].RefreshRate.Numerator;
-				denominator = displayModeList[i].RefreshRate.Denominator;
+	D3D_FEATURE_LEVEL featureLevels[] =
+	{
+		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_10_0,
+	};
+	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
+
+	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
+	{
+		driverType = driverTypes[driverTypeIndex];
+		hr = D3D11CreateDevice(nullptr, driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
+			D3D11_SDK_VERSION, device, &featureLevel, &deviceContext);
+
+		if (hr == E_INVALIDARG)
+		{
+			// DirectX 11.0 platforms will not recognize D3D_FEATURE_LEVEL_11_1 so we need to retry without it
+			hr = D3D11CreateDevice(nullptr, driverType, nullptr, createDeviceFlags, &featureLevels[1], numFeatureLevels - 1,
+				D3D11_SDK_VERSION, device, &featureLevel, &deviceContext);
+		}
+
+		if (SUCCEEDED(hr))
+			break;
+	}
+	if (FAILED(hr))
+		return hr;
+
+	// Obtain DXGI factory from device (since we used nullptr for pAdapter above)
+	IDXGIFactory1* dxgiFactory = nullptr;
+	{
+		IDXGIDevice* dxgiDevice = nullptr;
+		hr = (*device)->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice));
+		if (SUCCEEDED(hr))
+		{
+			IDXGIAdapter* adapter = nullptr;
+			hr = dxgiDevice->GetAdapter(&adapter);
+			if (SUCCEEDED(hr))
+			{
+				hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&dxgiFactory));
+				adapter->Release();
 			}
+			dxgiDevice->Release();
 		}
 	}
+	if (FAILED(hr))
+		return hr;
 
-	//gett the adapter(video card) description;
-	result = adapter->GetDesc(&adapterDesc);
-	if (FAILED(result)){
-		OutputDebugStringW(L"Failed to get the adapter description.\r\n ");
-		return false;
+	// Create swap chain
+	IDXGIFactory2* dxgiFactory2 = nullptr;
+	hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2));
+	if (dxgiFactory2)
+	{
+		// DirectX 11.1 or later
+		hr = (*device)->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void**>(&device1));
+		if (SUCCEEDED(hr))
+		{
+			(void)deviceContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(&deviceContext1));
+		}
+
+		DXGI_SWAP_CHAIN_DESC1 sd;
+		ZeroMemory(&sd, sizeof(sd));
+		sd.Width = width;
+		sd.Height = height;
+		sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		sd.SampleDesc.Count = 1;
+		sd.SampleDesc.Quality = 0;
+		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		sd.BufferCount = 1;
+
+		hr = dxgiFactory2->CreateSwapChainForHwnd(*device, hwnd, &sd, nullptr, nullptr, &swapChain1);
+		if (SUCCEEDED(hr))
+		{
+			hr = swapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void**>(&swapChain));
+		}
+
+		dxgiFactory2->Release();
+	}
+	else
+	{
+		// DirectX 11.0 systems
+		DXGI_SWAP_CHAIN_DESC sd;
+		ZeroMemory(&sd, sizeof(sd));
+		sd.BufferCount = 1;
+		sd.BufferDesc.Width = width;
+		sd.BufferDesc.Height = height;
+		sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		sd.BufferDesc.RefreshRate.Numerator = 60;
+		sd.BufferDesc.RefreshRate.Denominator = 1;
+		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		sd.OutputWindow = hwnd;
+		sd.SampleDesc.Count = 1;
+		sd.SampleDesc.Quality = 0;
+		sd.Windowed = TRUE;
+
+		hr = dxgiFactory->CreateSwapChain(*device, &sd, &swapChain);
 	}
 
-	//store the dedicated video card memory in megabyte
-	videoCardMemory = (int)(adapterDesc.DedicatedVideoMemory / 1024 / 1024);
+	// Note this tutorial doesn't handle full-screen swapchains so we block the ALT+ENTER shortcut
+	dxgiFactory->MakeWindowAssociation(hwnd, DXGI_MWA_NO_ALT_ENTER);
 
-	//convert name of the video card to character array and store 
-	error = wcstombs_s(&stringLength, videoCardDesc, 128, adapterDesc.Description, 128);
-	if (error != 0){
-		OutputDebugStringW(L"Failed to get the video card name \r\n");
-		return false;
+	dxgiFactory->Release();
 
-	}
+	if (FAILED(hr))
+		return hr;
 
-	//cleanup 
-	delete[] displayModeList;
-	displayModeList = nullptr;
+	// Create a render target view
+	ID3D11Texture2D* pBackBuffer = nullptr;
+	hr = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer));
+	if (FAILED(hr))
+		return hr;
 
-	adapterOutput->Release();
-	adapterOutput = nullptr;
-
-	adapter->Release();
-	adapter = nullptr;
-
-	factory->Release();
-	factory = nullptr;
-
-	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
-
-	//set to single back buffer and set the width & height
-	swapChainDesc.BufferCount = 1;
-	swapChainDesc.BufferDesc.Width = width;
-	swapChainDesc.BufferDesc.Height = height;
-
-	//set regular 32bit surface for back buffer
-	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-	//set refresh rate(vsync disabled)
-	swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
-	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-
-	//set usage of back buffer
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-
-	//set handle for window to render to
-	swapChainDesc.OutputWindow = hwnd;
-
-	//multisampling off
-	swapChainDesc.SampleDesc.Count = 1;
-	swapChainDesc.SampleDesc.Quality = 0;
-
-	swapChainDesc.Windowed = true;
-
-	//set scan line ordering and scaling to unspecified
-	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-	//discard back buffer content after present
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-
-	//no advanced flag
-	swapChainDesc.Flags = 0;
-
-	//dx11 feature level
-	featureLevel = D3D_FEATURE_LEVEL_11_0;
+	hr = (*device)->CreateRenderTargetView(pBackBuffer, nullptr, &renderTargetView);
+	pBackBuffer->Release();
 
 
-	//create swap chain, direct3d device, and device context
-	//set 4th parameter to D3D11_CREATE_DEVICE_DEBUG if you have any problem debugging the code
-	result = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, &featureLevel, 1,
-		D3D11_SDK_VERSION, &swapChainDesc, &swapChain, device, nullptr, &deviceContext);
-	if (FAILED(result)){
-		OutputDebugStringW(L"Failed to create device and swapchain");
-		return false;
-	}
-
-	//get ptr to back buffer
-	result = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPtr);
-	if (FAILED(result)){
-		OutputDebugStringW(L"Failed to get the pointer to the back buffer.\r\n ");
-		return false;
-	}
-	//create render target view with back buffer ptr
-	result = (*device)->CreateRenderTargetView(backBufferPtr, nullptr, &renderTargetView);
-	if (FAILED(result)){
-		OutputDebugStringW(L"Failed to create render target view with back buffer pointer.\r\n ");
-		return false;
-	}
-
-	//cleanup back buffer ptr
-	backBufferPtr->Release();
-	backBufferPtr = nullptr;
-
+	//point for depth buffer
 	ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
 
 	//setup description of the depth buffer
@@ -263,7 +241,7 @@ bool d3d::InitD3D(
 
 	//create texture for depth buffer using filled out description
 	result = (*device)->CreateTexture2D(&depthBufferDesc, NULL, &depthStencilBuffer);
-	if (FAILED(result)){
+	if (FAILED(result)) {
 		OutputDebugStringW(L"failed to create texture for the depth buffer using description.\r\n ");
 		return false;
 	}
@@ -293,7 +271,7 @@ bool d3d::InitD3D(
 
 	//create depth stencil state
 	result = (*device)->CreateDepthStencilState(&depthStencilDesc, &depthStencilState);
-	if (FAILED(result)){
+	if (FAILED(result)) {
 		OutputDebugStringW(L"Failed to create depth stencil state.\r\n ");
 		return false;
 	}
@@ -310,46 +288,28 @@ bool d3d::InitD3D(
 
 	//create depth stencil view
 	result = (*device)->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &depthStencilView);
-	if (FAILED(result)){
+	if (FAILED(result)) {
 		OutputDebugStringW(L"Failed to create depth stencil view. \r\n ");
 		return false;
 	}
 
-	//bind render target view
+
+	if (FAILED(hr))
+		return hr;
+
 	deviceContext->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
 
-	//setup raster description which will determine how and what polygons will be drawn
-	normalRasterDesc.AntialiasedLineEnable = true;
-	normalRasterDesc.CullMode = D3D11_CULL_BACK;
-	normalRasterDesc.DepthBias = 0;
-	normalRasterDesc.DepthBiasClamp = 0.f;
-	normalRasterDesc.DepthClipEnable = true;
-	normalRasterDesc.FillMode = D3D11_FILL_SOLID;
-	normalRasterDesc.FrontCounterClockwise = true;
-	normalRasterDesc.MultisampleEnable = true;
-	normalRasterDesc.ScissorEnable = false;
-	normalRasterDesc.SlopeScaledDepthBias = 0.0f;
+	// Setup the viewport
+	D3D11_VIEWPORT vp;
+	vp.Width = (FLOAT)width;
+	vp.Height = (FLOAT)height;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	deviceContext->RSSetViewports(1, &vp);
 
 
-	//create rasterizer state from description above
-	result = (*device)->CreateRasterizerState(&normalRasterDesc, &normalState);
-	if (FAILED(result)){
-		OutputDebugStringW(L"Failed to get normal rasterizer state. \r\n ");
-		return false;
-	}
-	
-	//set rasterizer state
-	deviceContext->RSSetState(normalState);
-
-	//setup and create viewport
-	viewport.Width = (float)width;
-	viewport.Height = (float)height;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	viewport.TopLeftX = 0.0f;
-	viewport.TopLeftY = 0.0f;
-
-	deviceContext->RSSetViewports(1, &viewport);
 
 	return true;
 }
